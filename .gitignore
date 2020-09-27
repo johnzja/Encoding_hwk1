@@ -1,0 +1,12 @@
+# MATLAB data files.
+*.mat
+
+# Report files.
+*.doc
+*.docx
+
+# Program Data.
+/matlab/data
+
+# MAC OS
+.DS_store
