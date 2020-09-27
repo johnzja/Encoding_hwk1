@@ -1,5 +1,6 @@
 # MATLAB data files.
 *.mat
+*.asv
 
 # Report files.
 *.doc
