@@ -6,9 +6,9 @@ conv_encoder_conf.trailing = true;
 
 A = cell(conv_encoder_conf.n,1);
 %       a4,a3,a2,a1
-
-A{1} = [1, 1, 0, 1];    
-A{2} = [1, 1, 1, 1];    
+ 
+A{1} = [1, 1, 0, 1];  % 15
+A{2} = [1, 1, 1, 1];  % 17. Rate=1/2.
 
 conv_encoder_conf.A=A;
 conv_encoder_conf.loss_func = @hamming_distance;

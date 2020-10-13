@@ -3,7 +3,7 @@ setup_encoder;
 conv_encoder_trailing=false;
 %% Simulation parameters.
 sim_N = 10;
-N = 4000;
+N = 40960;
 
 %% Start simulation.
 for sim_iter = 1:sim_N
@@ -11,7 +11,7 @@ for sim_iter = 1:sim_N
     encoded_bits = conv_encode(random_bits, conv_encoder_conf);
     
     %% Add random bit error.
-    random_bitflip = (rand([1,length(encoded_bits)])>0.99);
+    random_bitflip = (rand([1,length(encoded_bits)])>1.1);
     encoded_bits = xor(encoded_bits, random_bitflip);
     bfr = sum(random_bitflip)/length(encoded_bits);
     disp(['BER in channel: ', num2str(bfr*100), '%'])
