@@ -7,10 +7,10 @@ function syms=bit_mapping(bit_stream, mapping_conf)
     L = length(bit_stream);
     r = mod(L, bit_per_symbol);
     if r
-        bit_stream = [bit_stream, false([1, bit_per_symbol-r])];
+        bit_stream = [bit_stream, false([1, bit_per_symbol-r])];%补零
         L = length(bit_stream);
     end
-    Nb = L; Ns = Nb/bit_per_symbol;
+    Nb = L; Ns = Nb/bit_per_symbol;%计算需要的符号个数Ns
     syms = zeros([1, Ns]);
     
     nv = (2.^(bit_per_symbol-1:-1:0)).';
@@ -19,6 +19,25 @@ function syms=bit_mapping(bit_stream, mapping_conf)
         slice = bit_stream(index:index+bit_per_symbol-1);
         n = slice*nv+1;
         syms(k) = mapping_vector(n);
+    end
+    %interleave
+    interleave=mapping_conf.interleave;
+    depth=mapping_conf.depth;
+    if interleave
+        Ls=length(syms);
+        block=ceil(Ls/depth);
+        remainder=mod(Ls, depth);
+        syms_interleave=zeros(size(syms));
+        for D=1:depth
+            for B=1:block
+                if(D<=remainder)
+                    syms_interleave((D-1)*block+B)=syms((B-1)*depth+D);
+                elseif((B-1)*depth+D<=Ls)
+                    syms_interleave((D-1)*block+B-(D-remainder-1))=syms((B-1)*depth+D);
+                end
+            end
+        end
+        syms=syms_interleave;
     end
     
     % add pilots if we assume no CSI at Rx

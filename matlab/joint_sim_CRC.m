@@ -1,4 +1,5 @@
 clear;
+
 setup_mapper;
 setup_encoder;
 
@@ -136,11 +137,20 @@ assert(~any(diff(L_encoded)), 'error in length of encoded bits!');
 
 %% Count BLER.
 figure(1);
+hold on;
 set(gca, 'yscale', 'log');
 plot(SNR_arr,err_box_cnt_crc_hard.');
 if soft_decode
     plot(SNR_arr,err_box_cnt_crc_soft.');
 end
+
+if soft_decode
+    legend('BLER_ conv_ hard', 'BLER_ conv_ soft');
+else
+    legend('BLER_ conv_ hard');
+end
+title('BLER-SNR Curve');
+
 ylabel('BLER');
 xlabel('SNR_(_d_B_)');
 grid on;
