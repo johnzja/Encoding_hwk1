@@ -20,24 +20,23 @@ function syms=bit_mapping(bit_stream, mapping_conf)
         n = slice*nv+1;
         syms(k) = mapping_vector(n);
     end
+    
     %interleave
     interleave=mapping_conf.interleave;
     depth=mapping_conf.depth;
     if interleave
         Ls=length(syms);
-        block=ceil(Ls/depth);
-        remainder=mod(Ls, depth);
-        syms_interleave=zeros(size(syms));
-        for D=1:depth
-            for B=1:block
-                if(D<=remainder)
-                    syms_interleave((D-1)*block+B)=syms((B-1)*depth+D);
-                elseif((B-1)*depth+D<=Ls)
-                    syms_interleave((D-1)*block+B-(D-remainder-1))=syms((B-1)*depth+D);
-                end
+        N_blocks=ceil(Ls/depth);
+        int_matrix = zeros(depth, N_blocks);
+        for iter=1:N_blocks*depth
+            if iter<=Ls
+                int_matrix(iter) = syms(iter);
+            else
+                int_matrix(iter) = -1;    % -1 padded.
             end
         end
-        syms=syms_interleave;
+        Ns = depth * N_blocks;
+        syms=reshape(int_matrix.', [1, Ns]);
     end
     
     % add pilots if we assume no CSI at Rx

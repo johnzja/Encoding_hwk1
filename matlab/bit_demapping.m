@@ -51,7 +51,6 @@ function bit_stream=bit_demapping(syms, L, mapping_conf, ch, ch_conf, sigma)
         
         % remove pilots.
         est_syms = est_syms(~pilot_flag);
-        syms = syms(~pilot_flag);
     end
     
     %% deinterleave
@@ -59,24 +58,16 @@ function bit_stream=bit_demapping(syms, L, mapping_conf, ch, ch_conf, sigma)
     depth=mapping_conf.depth;
     if interleave
         Ls=length(est_syms);
-        block_in=ceil(Ls/depth);
-        remainder=mod(Ls, depth);
-        syms_deinterleave=zeros(size(est_syms));
-        for D=1:depth
-            for B=1:block_in
-                if(D<=remainder)
-                    syms_deinterleave((B-1)*depth+D)=est_syms((D-1)*block_in+B);
-                elseif((B-1)*depth+D<=Ls)
-                    syms_deinterleave((B-1)*depth+D)=est_syms((D-1)*block_in+B-(D-remainder-1));
-                end
-            end
-        end
-        est_syms=syms_deinterleave;
-    end     
+        N_blocks=Ls/depth;
+        est_syms=reshape(reshape(est_syms, [N_blocks,depth]).',[1, Ls]);
+        % Utilize L as expected length.
+        expected_syms_len = ceil(L/bit_per_symbol);
+        est_syms = est_syms(1:expected_syms_len);
+    end
     
     %% Perform demapping.
     if strcmp(output_mode, 'hard')
-        L_extended = length(syms) * bit_per_symbol;
+        L_extended = length(est_syms) * bit_per_symbol;
         bit_stream = false([1, L_extended]);
         % hard-decision.
         for block = 1:length(est_syms)
