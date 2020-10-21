@@ -6,7 +6,7 @@ setup_encoder;
 %% Simulation parameters.
 N_sim = 1000;
 N_info_bits = 4096;
-SNR_arr = [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 12.5, 15, 17.5];   % target SNR.
+SNR_arr = [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 35, 40];   % target SNR.
 Ps = 1;
 soft_decode = true;
 record_csi = false;
