@@ -1,15 +1,15 @@
 % Raised Cosine designer.
-oversample_rate = 4;
+oversample_rate = 8;
 N_filter_len = (2*10+1);
 N_single_sided_filter_len = (N_filter_len-1)/2;
 
 alpha = 1/2;
-fs = 8000;
+fs = 16000;
 BW = 3400 - 300;
-omega_c = pi*BW/fs;
-L = (pi/omega_c);
+omega_c = pi*BW/fs/(1+alpha);
+L = (pi/omega_c);           % H(e^j0)
 
-N_GSample = 5000;           % Bigger, better.
+N_GSample = 8000;           % Bigger, better.
 % Plot graph of G.
 figure(1);
 hold on;
@@ -21,11 +21,13 @@ end
 plot(omega_arr, G_arr);
 set(gca, 'xtick', -pi:pi/2:pi);
 set(gca,'XTickLabel',{'-\pi', '-\pi/2','0', '\pi/2', '\pi'});
+title('|G(e^j^\omega)|^2');
 
 %% Perform IDTFT, adding window.
 % Formula: 1/(2*pi)¡Òsqrt(G(¦Ø))d¦Ø
-N_gSample = 8;
-g_arr = zeros(N_gSample*2+1, 1);
+N_gSample = 32;
+g_arr = zeros(N_gSample*2+1, 1);    % Central point @ g_arr[32].
+Group_delay = N_gSample;
 
 for k = 0:N_gSample
     to_be_integrated = sqrt(G_arr) .* exp(1j*omega_arr*k);
@@ -34,11 +36,20 @@ for k = 0:N_gSample
         g_arr(N_gSample-k+1) = g_arr(N_gSample+1+k);  % Symmetric.
     end
 end
+figure(4);
+freqz(g_arr,[1]);
+
+g_arr = g_arr .* kaiser(length(g_arr),1);          % Adding kaiser window.
+g_arr = g_arr / sqrt(sum(g_arr.^2));    % Energy normalization.
+
 disp(sum(g_arr.^2));
 figure(2);
-plot(g_arr);
+plot((-N_gSample:1:N_gSample).', g_arr);
+title('g[n]');
+figure(3);
+freqz(g_arr,[1]);
 
-save('data/rcf.mat', 'g_arr', 'alpha', 'N_gSample');
+save('data/rcf.mat', 'g_arr', 'alpha', 'Group_delay');
 
 function G = get_G(omega, L, omega_c, alpha)
     % Assume -pi <= omega <= pi.
