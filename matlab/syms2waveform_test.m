@@ -24,7 +24,7 @@ for sim_iter = 1:N_sim
     end
     transmit_signal_baseband = filter(g_arr, [1], transmit_delta_sequence);  % generate I/Q signals  && put into physical AWGN channel.
     if disp_flag
-        figure(1);
+        figure;
         subplot(2,1,1);
         n_arr = (0:length(transmit_delta_sequence)-1).';
         stem(n_arr, real(transmit_delta_sequence));
@@ -43,7 +43,7 @@ for sim_iter = 1:N_sim
         subplot(2,1,2);
         stem(n_arr, transmit_signal);
         title('(RF) signal transmitted within band 300~3400Hz');
-        figure(2);
+        figure;
     end
     
     noises = sigma * randn(size(transmit_signal));
@@ -55,12 +55,12 @@ for sim_iter = 1:N_sim
     recv_noise_after_MF = filter(g_arr, [1], recv_noise_baseband);
     
     if disp_flag
-        subplot(2,1,1);
         stem(real(recv_signal_after_MF));
         hold on;
         stem(real(recv_signal_after_MF + recv_noise_after_MF));
         legend('recv BB', 'recv BB with noise');
     end
+    
     disp(['Energy_syms=', num2str(sum(abs(transmit_delta_sequence).^2))]);
     disp(['Energy_transmitted_signal=', num2str(sum(abs(transmit_signal).^2))]);
     disp(['channel Es/n0(dB) = ', num2str(0.5*db(0.5/(2*sigma^2)))]);

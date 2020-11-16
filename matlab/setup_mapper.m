@@ -1,7 +1,7 @@
 %% Config all the parameters.
 ch_conf.b = 0.5;
 ch_conf.rho = 0.95;
-mapping_conf.M = [1, 1j, -1j, -1];  % grey code with Ps=1.
+mapping_conf.M = [1+1j, 1-1j, -1+1j, -1-1j]./sqrt(2);  % grey code with Ps=1.
                                     % [-1,1] [1, 1j, -1j, -1]
                                     % [1, 1/sqrt(2)+1j/sqrt(2), -1/sqrt(2)+1j/sqrt(2), ...
                                     % j, 1/sqrt(2)-1j/sqrt(2), -i, -1, -1/sqrt(2)-1j/sqrt(2) ]
