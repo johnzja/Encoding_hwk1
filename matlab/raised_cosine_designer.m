@@ -24,7 +24,7 @@ set(gca,'XTickLabel',{'-\pi', '-\pi/2','0', '\pi/2', '\pi'});
 title('|G(e^j^\omega)|^2');
 
 %% Perform IDTFT, adding window.
-% Formula: 1/(2*pi)¡Òsqrt(G(¦Ø))d¦Ø
+% Formula: 1/(2*pi)??sqrt(G(??))d??
 N_gSample = 32;
 g_arr = zeros(N_gSample*2+1, 1);    % Central point @ g_arr[32].
 Group_delay = N_gSample;
@@ -36,8 +36,8 @@ for k = 0:N_gSample
         g_arr(N_gSample-k+1) = g_arr(N_gSample+1+k);  % Symmetric.
     end
 end
-figure(4);
-freqz(g_arr,[1]);
+% figure(4);
+% freqz(g_arr,[1]);
 
 g_arr = g_arr .* kaiser(length(g_arr),1);          % Adding kaiser window.
 g_arr = g_arr / sqrt(sum(g_arr.^2));    % Energy normalization.
@@ -46,8 +46,8 @@ disp(sum(g_arr.^2));
 figure(2);
 plot((-N_gSample:1:N_gSample).', g_arr);
 title('g[n]');
-figure(3);
-freqz(g_arr,[1]);
+% figure(3);
+% freqz(g_arr,[1]);
 
 save('data/rcf.mat', 'g_arr', 'alpha', 'Group_delay');
 
