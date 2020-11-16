@@ -24,7 +24,7 @@ function [transmit_signal] = syms2waveform(syms, waveform_conf, disp_flag)
     end
     transmit_signal_baseband = filter(g_arr, [1], transmit_delta_sequence);  % generate I/Q signals  && put into physical AWGN channel.
     if disp_flag
-        figure(1);
+        figure;
         
         n_arr = (0:length(transmit_delta_sequence)-1).';
         stem(n_arr, real(transmit_delta_sequence));
