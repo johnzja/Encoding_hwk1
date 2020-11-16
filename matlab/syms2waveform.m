@@ -1,13 +1,16 @@
-function [transmit_signal] = syms2waveform(syms,waveform_conf)
+function [transmit_signal] = syms2waveform(syms, waveform_conf, disp_flag)
 %Summary of this function goes here
-%ç”µå¹³ç¬¦å·è½¬æ³¢å½¢çš„ä¸€æ¬¡å®ç°
-%è¾“å…¥ï¼šsyms                    å¤ç”µå¹³ç¬¦å·åºåˆ—
-%      waveform_conf           æ³¢å½¢å‚æ•° 
-%è¾“å‡ºï¼štransmit_signal         è½½æ³¢æ³¢å½¢
+%µçÆ½·ûºÅ×ª²¨ĞÎµÄÒ»´ÎÊµÏÖ
+%ÊäÈë£ºsyms                    ¸´µçÆ½·ûºÅĞòÁĞ
+%      waveform_conf           ²¨ĞÎ²ÎÊı 
+%Êä³ö£ºtransmit_signal         ÔØ²¨²¨ĞÎ
 %   Detailed explanation goes here
-    disp_flag = true;    
+    if ~exist('disp_flag', 'var') || isempty(disp_flag)
+        disp_flag = false;
+    end
+     
     oversample_rate = waveform_conf.oversample_rate;
-    fs = waveform_conf.fs;     % sample rate
+    fs = waveform_conf.fs;      % sample rate
     fc = waveform_conf.fc;      % carrier freq = 1850Hz    
     Group_delay=waveform_conf.Group_delay;
     g_arr=waveform_conf.g_arr;
@@ -15,11 +18,9 @@ function [transmit_signal] = syms2waveform(syms,waveform_conf)
     N_syms = length(syms);
     len_signal = N_syms * oversample_rate + 2*Group_delay;
     transmit_delta_sequence = zeros(len_signal,1);    
-    syms_I = real(syms); %åŒææ€§+1ã€-1
-    syms_Q = imag(syms);
     
     for k = 1:N_syms
-        transmit_delta_sequence(1+(k-1)*oversample_rate) = (syms_I(k) + 1j*syms_Q(k))/sqrt(2);
+        transmit_delta_sequence(1+(k-1)*oversample_rate) = syms(k);
     end
     transmit_signal_baseband = filter(g_arr, [1], transmit_delta_sequence);  % generate I/Q signals  && put into physical AWGN channel.
     if disp_flag

@@ -7,10 +7,10 @@ function syms=bit_mapping(bit_stream, mapping_conf)
     L = length(bit_stream);
     r = mod(L, bit_per_symbol);
     if r
-        bit_stream = [bit_stream, false([1, bit_per_symbol-r])];%补零
+        bit_stream = [bit_stream, false([1, bit_per_symbol-r])];    %补零
         L = length(bit_stream);
     end
-    Nb = L; Ns = Nb/bit_per_symbol;%计算需要的符号个数Ns
+    Nb = L; Ns = Nb/bit_per_symbol;                                 %计算需要的符号个数Ns
     syms = zeros([1, Ns]);
     
     nv = (2.^(bit_per_symbol-1:-1:0)).';

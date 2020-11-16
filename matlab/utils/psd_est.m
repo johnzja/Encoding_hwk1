@@ -16,14 +16,14 @@ function [Sx, freq] = psd_est(x_mat, signal_len, fs, plot_switch)
     
     % Convert digital PSD into analog PSD.
     PSD_len = ceil(signal_len/2);
-    Sx = (Sx(1:PSD_len) / fs);
+    Sx = 10*log10(2*Sx(1:PSD_len) / fs)+30;
     freq = (0:PSD_len-1) / N_sampleLen * fs;
     
     if plot_switch
         plot(freq, Sx);
-        title('Power Spectrum Density');
+        title('Single-Sided Power Spectrum Density');
         xlabel('Frequency (Hz)');
-        ylabel('PSD');
+        ylabel('PSD (dBmJ)');
     end
     
 end

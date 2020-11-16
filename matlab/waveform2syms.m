@@ -1,30 +1,39 @@
-function [recv_syms] = waveform2syms(transmit_signal,n0,N_syms,waveform_conf)
+function [recv_syms, recv_signal] = waveform2syms(transmit_signal, n0, N_syms, waveform_conf, disp_flag)
 %Summary of this function goes here
-%è½½æ³¢æ³¢å½¢è½¬ç”µå¹³ç¬¦å·çš„ä¸€æ¬¡å®ç°
-%è¾“å…¥ï¼štransmit_signal         è½½æ³¢æ³¢å½¢           
-%      n0                      å™ªå£°n0 
-%      N_syms                  å¤ç”µå¹³ç¬¦å·ä¸ªæ•°
-%      waveform_conf           æ³¢å½¢å‚æ•°
-%è¾“å‡ºï¼šrecv_syms               æ¥æ”¶ç«¯å¤ç”µå¹³ç¬¦å·åºåˆ—
+%ÔØ²¨²¨ĞÎ×ªµçÆ½·ûºÅµÄÒ»´ÎÊµÏÖ
+%ÊäÈë£ºtransmit_signal         ÔØ²¨²¨ĞÎ           
+%      n0                      ÔëÉùn0 
+%      N_syms                  ¸´µçÆ½·ûºÅ¸öÊı
+%      waveform_conf           ²¨ĞÎ²ÎÊı
+%Êä³ö£ºrecv_syms               ½ÓÊÕ¶Ë¸´µçÆ½·ûºÅĞòÁĞ
+%      recv_signal             Signal observed at receiver.
 %   Detailed explanation goes here
-    disp_flag = true;    
+
+    if ~exist('disp_flag', 'var') || isempty(disp_flag)
+        disp_flag = false;
+    end
+    
     oversample_rate = waveform_conf.oversample_rate;
-    fs = waveform_conf.fs;     % sample rate
+    fs = waveform_conf.fs;      % sample rate
     fc = waveform_conf.fc;      % carrier freq = 1850Hz    
-    %Group_delay=waveform_conf.Group_delay;
+    Group_delay=waveform_conf.Group_delay;
     g_arr=waveform_conf.g_arr;
     sigma=sqrt(n0/2);
     len_signal=length(transmit_signal);
     recv_syms=zeros(1,N_syms);
     noises = sigma * randn(size(transmit_signal));
+    recv_signal = transmit_signal + noises;
+    
     recv_signal_baseband = (2*transmit_signal).*exp(-1j*2*pi*((0:len_signal-1))*fc/fs);
     recv_noise_baseband = (2*noises).*exp(-1j*2*pi*((0:len_signal-1))*fc/fs);
     recv_signal_after_MF = filter(g_arr, [1], recv_signal_baseband);                                 % g_arr filter is an LPF.
     recv_noise_after_MF = filter(g_arr, [1], recv_noise_baseband);
     
     recv_wave_after_MF=recv_signal_after_MF+recv_noise_after_MF;
+    
+    recv_delay = Group_delay*2;
     for k = 1:N_syms
-        recv_syms(k)=recv_wave_after_MF(1+(k-1)*oversample_rate);
+        recv_syms(k)=recv_wave_after_MF(recv_delay+1+(k-1)*oversample_rate);
     end
     
     if disp_flag
