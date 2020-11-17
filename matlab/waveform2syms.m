@@ -42,6 +42,7 @@ function [recv_syms, recv_signal] = waveform2syms(transmit_signal, n0, N_syms, w
         hold on;
         stem(real(recv_signal_after_MF + recv_noise_after_MF));
         legend('recv BB', 'recv BB with noise');
+        pause;
     end
 %     disp(['Energy_syms=', num2str(sum(abs(transmit_delta_sequence).^2))]);
 %     disp(['Energy_transmitted_signal=', num2str(sum(abs(transmit_signal).^2))]);

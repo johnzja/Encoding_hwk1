@@ -32,6 +32,7 @@ function [transmit_signal] = syms2waveform(syms, waveform_conf, disp_flag)
         stem(n_arr, real(transmit_signal_baseband));
         title('(Re) delta sequence && x_B_B_,_I(t)');
         legend('transmit delta', 'transmit baseband');
+        pause;
     end
     % up-convert.
     % channel parameters.

@@ -24,6 +24,7 @@ function [Sx, freq] = psd_est(x_mat, signal_len, fs, plot_switch)
         title('Single-Sided Power Spectrum Density');
         xlabel('Frequency (Hz)');
         ylabel('PSD (dBmJ)');
+        pause;
     end
     
 end
