@@ -93,9 +93,9 @@ time_elapsed = toc;
 %% Disp
 figure;
 hold on;
-plot(Ebn0_arr, (err_bit_cnt_soft_decode/(N_info_bits*N_sim)).');
-plot(Ebn0_arr, (err_bit_cnt_hard_decode/(N_info_bits*N_sim)).');
-plot(Ebn0_arr-10*log10(2), (err_bit_cnt_hard_demap/(N_info_bits*N_sim)).');   % Hard-demapping: Eb/n0-3dB
+plot(Ebn0_arr, (err_bit_cnt_soft_decode/(N_info_bits*N_sim)).','r-*');
+plot(Ebn0_arr, (err_bit_cnt_hard_decode/(N_info_bits*N_sim)).','b-*');
+plot(Ebn0_arr-10*log10(2), (err_bit_cnt_hard_demap/(N_info_bits*N_sim)).','g-*');   % Hard-demapping: Eb/n0-3dB
 legend('BER_ conv_ soft_ decode', 'BER_ conv_ hard_ decode', 'BER_ no_ coding');
 set(gca, 'yscale', 'log');
 title('BER-Eb/n_0 Curve');
@@ -106,4 +106,5 @@ grid on;
 disp(['Time elapsed: ', num2str(time_elapsed), 's for ', num2str(N_n0s*N_sim), ...
     ' waveform channel simulations']);
 
+%% SAVE
 save(['data/sim_AWGN_soft_', strrep(datestr(datetime), ':', '_'), '.mat']);
