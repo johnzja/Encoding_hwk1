@@ -10,9 +10,10 @@ function [output] = f(R, K, S)
     R_S = zeros(1,32);
     for row = 1:8
         STable = S{row};
-        block = R(1,6*row-5:6*row);
-        ind1 = 2*block(1) + block(end) + 1;
-        ind2 = 8*block(2) + 4*block(3) + 2*block(4) + block(5) + 1;
+        blockOffset = 6*row-6;
+        ind1 = 2*R(1,blockOffset + 1) + R(1,blockOffset + 5) + 1;
+        ind2 = 8*R(1,blockOffset + 2) + 4*R(1,blockOffset + 3) +...
+            2*R(1,blockOffset + 4) + R(1,blockOffset + 5) + 1;
         R_S(4*row-3: 4*row) = STable{ind1,ind2};
     end
     output = R_S(P);
