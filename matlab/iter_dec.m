@@ -1,6 +1,7 @@
-function [output] = iter_dec(LR, K, S)
+function [LR] = iter_dec(LR, K, S)
     L = LR(1:32);
     R = LR(33:64);
-    output = [mod(R+f(L,K,S),2) L];
+    LR(33:64) = L;
+    LR(1:32) = mod(R+f(L,K,S),2);
 end
 
