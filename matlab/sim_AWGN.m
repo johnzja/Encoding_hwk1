@@ -7,13 +7,16 @@ setup_encrypter;
 addpath('utils');
 
 %% Simulation parameters.
-N_sim = 2000;
+N_sim = 3000;
 N_info_bits = 8000;                                                     % 1kB file to transmit.
 Ebn0_arr = [20, 15, 12.5, 10, 8, 6, 5, 4, 3, 2.5, 2, 1.5, 1, 0.5, 0, -0.5, -1, -1.5];     % Eb/n0 in dB.
-% Ebn0_arr = [3];
+
 Es = 0.5;                                   % 1 sym in waveform channel: 0.5 energy.
 Eb = Es/mapping_conf.bps * (conv_encoder_conf.n/conv_encoder_conf.k);   % Notice: if hard-decision, Eb is different.
 n0_arr = Eb ./ (10.^(Ebn0_arr/10));         % n0 in linear scale.
+if encrypter.enable == true && strcmp(encrypter.method, 'RSA')
+    n0_arr = n0_arr * 8000 / 8440;
+end
 N_n0s = length(n0_arr);
 
 L_encoded = zeros(N_n0s, 1);
@@ -34,13 +37,18 @@ disp_psd = false;
 tic;
 parfor n0_iter = 1:N_n0s
     % Temporary variables for PSD estimators.
-    RF_signals_trans = zeros(N_sim, 64088);
-    RF_signals_recv = zeros(N_sim, 64088);
+    if encrypter.enable == true && strcmp(encrypter.method, 'RSA')
+        RF_signals_trans = zeros(N_sim, 67608);
+        RF_signals_recv = zeros(N_sim, 67608);
+    else
+        RF_signals_trans = zeros(N_sim, 64088);
+        RF_signals_recv = zeros(N_sim, 64088);        
+    end
     my_mapping_conf = mapping_conf;
     for sim_iter = 1:N_sim
-        random_bits = (rand([1, N_info_bits])>0.5);
+        random_bits = (rand([1, N_info_bits])>0.5); % Generate info bits. 
         if encrypter.enable == true
-            [bits_before_encode, key] = encrypt(random_bits,encrypter.method);
+            bits_before_encode = encrypt(random_bits,encrypter.method,encrypter.key); % Encryption. 
         else
             bits_before_encode = random_bits;
         end
@@ -77,9 +85,10 @@ parfor n0_iter = 1:N_n0s
         ch = ones(1, length(syms_recv));
         pred_bits = bit_demapping(syms_recv, N_info_bits, my_mapping_conf, ch, ch_conf, 1);
         err_bit_cnt_hard_demap(n0_iter) = err_bit_cnt_hard_demap(n0_iter) + sum(xor(random_bits, pred_bits));
-        for i = 1:64:length(random_bits)
+        blk_size = encrypter.blk_size_encrypted_bits;
+        for i = 1:blk_size:length(decoded_bits_soft)
             blk_start = i;
-            blk_end = min(i+63, length(random_bits));
+            blk_end = min(i+blk_size-1, length(decoded_bits_soft));
             err_block_cnt_soft_decode(n0_iter) = err_block_cnt_soft_decode(n0_iter) +...
                 ~isequal(bits_before_encode(blk_start:blk_end), decoded_bits_soft(blk_start:blk_end));  
             err_block_cnt_hard_decode(n0_iter) = err_block_cnt_hard_decode(n0_iter) +...
@@ -88,15 +97,16 @@ parfor n0_iter = 1:N_n0s
         
         %% Decrypt
         if encrypter.enable == true
-            decoded_bits_soft_decrypted = decrypt(decoded_bits_soft,key,encrypter.method);
-            decoded_bits_hard_decrypted = decrypt(decoded_bits_hard,key,encrypter.method);
+            decoded_bits_soft_decrypted = decrypt(decoded_bits_soft,encrypter.key,encrypter.method,N_info_bits);
+            decoded_bits_hard_decrypted = decrypt(decoded_bits_hard,encrypter.key,encrypter.method,N_info_bits);
             err_bit_cnt_soft_decode_decrypted(n0_iter) = ...
                 err_bit_cnt_soft_decode_decrypted(n0_iter) + sum(xor(random_bits, decoded_bits_soft_decrypted));
             err_bit_cnt_hard_decode_decrypted(n0_iter) = ...
                 err_bit_cnt_hard_decode_decrypted(n0_iter) + sum(xor(random_bits, decoded_bits_hard_decrypted));
-            for i = 1:64:length(random_bits)
+            blk_size = encrypter.blk_size_info_bits;
+            for i = 1:blk_size:length(random_bits)
                 blk_start = i;
-                blk_end = min(i+63, length(random_bits));
+                blk_end = min(i+blk_size-1, length(random_bits));
                 err_block_cnt_soft_decode_decrypted(n0_iter) = err_block_cnt_soft_decode_decrypted(n0_iter) +...
                     ~isequal(random_bits(blk_start:blk_end), decoded_bits_soft_decrypted(blk_start:blk_end));  
                 err_block_cnt_hard_decode_decrypted(n0_iter) = err_block_cnt_hard_decode_decrypted(n0_iter) +...
@@ -119,8 +129,7 @@ parfor n0_iter = 1:N_n0s
         num2str(log10(err_bit_cnt_hard_demap(n0_iter)/(N_info_bits*N_sim)))]);
     disp(['Log BER with encoding and encryption (soft demapping): ', ...
         num2str(log10(err_bit_cnt_soft_decode_decrypted(n0_iter)/(N_info_bits*N_sim)))]);
-    disp(['Log BLER with encoding and encryption (soft demapping): ', ...
-        num2str(log10(err_block_cnt_soft_decode_decrypted(n0_iter)/(ceil(N_info_bits/64)*N_sim)))]);
+
     %% Draw PSD.
     if disp_psd
         figure;
@@ -135,11 +144,16 @@ time_elapsed = toc;
 %% Disp
 figure;
 hold on;
-plot(Ebn0_arr, (err_bit_cnt_soft_decode/(N_info_bits*N_sim)).', '-+');
+plot(Ebn0_arr, (err_bit_cnt_soft_decode/(N_info_bits*N_sim)).', '-*');
 plot(Ebn0_arr, (err_bit_cnt_hard_decode/(N_info_bits*N_sim)).', '-*');
-plot(Ebn0_arr-10*log10(2), (err_bit_cnt_hard_demap/(N_info_bits*N_sim)).', '-x');   % Hard-demapping: Eb/n0-3dB
-plot(Ebn0_arr, (err_bit_cnt_soft_decode_decrypted/(N_info_bits*N_sim)).', '-o');
-legend('BER_ conv_ soft_ decode', 'BER_ conv_ hard_ decode', 'BER_ no_ coding',  'BER_ encryption');
+Ebn0_arr_hard_demapping = Ebn0_arr - 10*log10(2);
+Ebn0_arr_hard_demapping = Ebn0_arr_hard_demapping(err_bit_cnt_hard_demap~=0);
+err_bit_cnt_hard_demap=err_bit_cnt_hard_demap(err_bit_cnt_hard_demap~=0);
+plot(Ebn0_arr_hard_demapping, (err_bit_cnt_hard_demap/(N_info_bits*N_sim)).','-*');   % Hard-demapping: Eb/n0-3dB
+plot(Ebn0_arr, (err_bit_cnt_soft_decode_decrypted/(N_info_bits*N_sim)).', '-*');
+BER_theoretical = qfunc(sqrt(2*10.^(Ebn0_arr_hard_demapping/10)));
+plot(Ebn0_arr_hard_demapping, BER_theoretical, '-*');
+legend('BER_ conv_ soft_ decode', 'BER_ conv_ hard_ decode', 'BER_ no_ coding',  'BER_ soft_ decode_ with_ encryption', 'BER theoretical');
 set(gca, 'yscale', 'log');
 title('BER-Eb/n_0 Curve');
 xlabel('Eb/n0(dB)');
@@ -152,7 +166,7 @@ plot(Ebn0_arr, (err_block_cnt_soft_decode_decrypted/((ceil(N_info_bits)/64)*N_si
 plot(Ebn0_arr, (err_block_cnt_hard_decode_decrypted/((ceil(N_info_bits)/64)*N_sim)).', '-*');
 plot(Ebn0_arr, (err_block_cnt_soft_decode/((ceil(N_info_bits)/64)*N_sim)).', '-x');
 plot(Ebn0_arr, (err_block_cnt_hard_decode/((ceil(N_info_bits)/64)*N_sim)).','-o');
-legend('BLER_ conv_ soft_ decode_ DES', 'BLER_ conv_ hard_ decode_ DES', 'BLER_ conv_ soft_ decode',  'BLER_ conv_ hard_ decode');
+legend('BLER_ conv_ soft_ decode_ RSA', 'BLER_ conv_ hard_ decode_ RSA', 'BLER_ conv_ soft_ decode',  'BLER_ conv_ hard_ decode');
 set(gca, 'yscale', 'log');
 title('BLER-Eb/n_0 Curve');
 xlabel('Eb/n0(dB)');
@@ -162,4 +176,5 @@ grid on;
 disp(['Time elapsed: ', num2str(time_elapsed), 's for ', num2str(N_n0s*N_sim), ...
     ' waveform channel simulations']);
 
+%% SAVE files!
 save(['data/sim_AWGN_soft_', strrep(datestr(datetime), ':', '_'), '.mat']);
