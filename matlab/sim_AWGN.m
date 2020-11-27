@@ -15,7 +15,7 @@ Es = 0.5;                                   % 1 sym in waveform channel: 0.5 ene
 Eb = Es/mapping_conf.bps * (conv_encoder_conf.n/conv_encoder_conf.k);   % Notice: if hard-decision, Eb is different.
 n0_arr = Eb ./ (10.^(Ebn0_arr/10));         % n0 in linear scale.
 if encrypter.enable == true && strcmp(encrypter.method, 'RSA')
-    n0_arr = n0_arr * 8000 / 8440;
+    n0_arr = n0_arr * 8440 / 8000;
 end
 N_n0s = length(n0_arr);
 
