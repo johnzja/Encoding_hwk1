@@ -15,7 +15,9 @@ Es = 0.5;                                   % 1 sym in waveform channel: 0.5 ene
 Eb = Es/mapping_conf.bps * (conv_encoder_conf.n/conv_encoder_conf.k);   % Notice: if hard-decision, Eb is different.
 n0_arr = Eb ./ (10.^(Ebn0_arr/10));         % n0 in linear scale.
 if encrypter.enable == true && strcmp(encrypter.method, 'RSA')
-    n0_arr = n0_arr * 8440 / 8000;
+    n0_arr_encoding = n0_arr * 8440 / 8000;
+else
+    n0_arr_encoding = n0_arr;
 end
 N_n0s = length(n0_arr);
 
@@ -59,7 +61,7 @@ parfor n0_iter = 1:N_n0s
         wave_transmit = syms2waveform(syms_transmit, waveform_conf, disp_waveform);
         RF_signals_trans(sim_iter, :) = wave_transmit;  % RECORD
         
-        [syms_recv, wave_recv] = waveform2syms(wave_transmit, n0_arr(n0_iter), length(syms_transmit), ...
+        [syms_recv, wave_recv] = waveform2syms(wave_transmit, n0_arr_encoding(n0_iter), length(syms_transmit), ...
             waveform_conf, disp_waveform);
         RF_signals_recv(sim_iter, :) = wave_recv;       % RECORD
         
